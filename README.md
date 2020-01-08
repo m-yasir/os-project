@@ -21,7 +21,7 @@ sudo apt install make gcc binutils qemu
 ```
 make
 ```
-- Run it on an emulator, in this case, qemu (use qemu-nox if you want to use your terminal as opposed to qemu's).
+- Run it on an emulator, in this case, qemu (use qemu if you want to use qemu's terminal as opposed to your own).
 ```
-make qemu
+make qemu-nox
 ```
