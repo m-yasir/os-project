@@ -89,3 +89,9 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// function to use for displayig curent processess states
+int 
+sys_cps ( void ) {
+  return cps ();
+}
