@@ -25,3 +25,11 @@ make
 ```
 make qemu
 ```
+
+#### NOTE to devs:
+
+- Use the following command before commit:
+
+```
+make clean
+```
