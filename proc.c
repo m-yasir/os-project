@@ -87,8 +87,14 @@ allocproc(void)
 
 found:
   p->state = EMBRYO;
+  p->numtickets = 1
   p->pid = nextpid++;
 
+  pstat.killed[p.ptable.proc] = p->state
+  pstat.inuse[p.ptable.proc] = 1;
+  pstat.pid[p.ptable.proc] = p->pid;
+  pstat.hticks[p.ptable.proc] = 0;
+  pstat.lticks[p.ptable.proc] = 0;
   release(&ptable.lock);
 
   // Allocate kernel stack.

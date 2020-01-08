@@ -77,6 +77,22 @@ sys_sleep(void)
   return 0;
 }
 
+struct pstat pstat;
+int sys_getpinfo(void){
+  struct pstat *st;
+  if(argptr(0, (void*)&st, sizeof(*st)) < 0){
+    return -1;
+  }
+  for(int i = 0; i < NPROC; i++){
+    st->inuse[i] = pstat.inuse[i],
+    st->pid[i] = pstat.pid[i],
+    st->hticks[i] = pstat.hticks[i],
+    st->lticks[i] = pstat.lticks[i],
+    st->killed[i] = pstat.killed[i];
+  }
+  return 0;
+}
+
 // return how many clock tick interrupts have occurred
 // since start.
 int
