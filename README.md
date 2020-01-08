@@ -3,6 +3,20 @@ This repository was created in order to coordinate and synchronize modules being
 
 This project requires ELF supported GCC compiler in order to compile it, which will not work on MACOSX due to non-ELF CLANG compiler implemented in MACOSX, unless you follow a workaround which won't be explained here.
 
+### Tools required to build the kernel
+
+- ELF-supported gcc compiler
+- qemu (installation for a real device isn't explained or shown here though it is indeed possible)
+- make
+- utils needed to execute make
+
+#### Installation on Linux:
+
+```
+sudo apt install make gcc binutils qemu
+```
+
+
 - In order to build code
 ```
 make
