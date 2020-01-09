@@ -25,6 +25,16 @@ struct execcmd
   char *eargv[MAXARGS];
 };
 
+struct redircmd
+{
+  int type;
+  struct cmd *cmd;
+  char *file;
+  char *efile;
+  int mode;
+  int fd;
+};
+
 struct pipecmd
 {
   int type;
@@ -57,6 +67,7 @@ void runcmd(struct cmd *cmd)
   struct execcmd *ecmd;
   struct listcmd *lcmd;
   struct pipecmd *pcmd;
+  struct redircmd *rcmd;
 
   if (cmd == 0)
     exit();
@@ -72,6 +83,17 @@ void runcmd(struct cmd *cmd)
       exit();
     exec(ecmd->argv[0], ecmd->argv);
     printf(2, "exec %s failed\n", ecmd->argv[0]);
+    break;
+
+  case REDIR:
+    rcmd = (struct redircmd *)cmd;
+    close(rcmd->fd);
+    if (open(rcmd->file, rcmd->mode) < 0)
+    {
+      printf(2, "open %s failed\n", rcmd->file);
+      exit();
+    }
+    runcmd(rcmd->cmd);
     break;
 
   case LIST:
@@ -187,6 +209,22 @@ execcmd(void)
   cmd = malloc(sizeof(*cmd));
   memset(cmd, 0, sizeof(*cmd));
   cmd->type = EXEC;
+  return (struct cmd *)cmd;
+}
+
+struct cmd *
+redircmd(struct cmd *subcmd, char *file, char *efile, int mode, int fd)
+{
+  struct redircmd *cmd;
+
+  cmd = malloc(sizeof(*cmd));
+  memset(cmd, 0, sizeof(*cmd));
+  cmd->type = REDIR;
+  cmd->cmd = subcmd;
+  cmd->file = file;
+  cmd->efile = efile;
+  cmd->mode = mode;
+  cmd->fd = fd;
   return (struct cmd *)cmd;
 }
 
@@ -338,18 +376,37 @@ parsepipe(char **ps, char *es)
   struct cmd *cmd;
 
   cmd = parseexec(ps, es);
+  if (peek(ps, es, "|"))
+  {
+    gettoken(ps, es, 0, 0);
+    cmd = pipecmd(cmd, parsepipe(ps, es));
+  }
   return cmd;
 }
 
 struct cmd *
 parseredirs(struct cmd *cmd, char **ps, char *es)
 {
+  int tok;
   char *q, *eq;
 
   while (peek(ps, es, "<>"))
   {
+    tok = gettoken(ps, es, 0, 0);
     if (gettoken(ps, es, &q, &eq) != 'a')
       panic("missing file for redirection");
+    switch (tok)
+    {
+    case '<':
+      cmd = redircmd(cmd, q, eq, O_RDONLY, 0);
+      break;
+    case '>':
+      cmd = redircmd(cmd, q, eq, O_WRONLY | O_CREATE, 1);
+      break;
+    case '+': // >>
+      cmd = redircmd(cmd, q, eq, O_WRONLY | O_CREATE, 1);
+      break;
+    }
   }
   return cmd;
 }
@@ -413,6 +470,7 @@ nulterminate(struct cmd *cmd)
   struct execcmd *ecmd;
   struct listcmd *lcmd;
   struct pipecmd *pcmd;
+  struct redircmd *rcmd;
 
   if (cmd == 0)
     return 0;
@@ -423,6 +481,12 @@ nulterminate(struct cmd *cmd)
     ecmd = (struct execcmd *)cmd;
     for (i = 0; ecmd->argv[i]; i++)
       *ecmd->eargv[i] = 0;
+    break;
+
+  case REDIR:
+    rcmd = (struct redircmd *)cmd;
+    nulterminate(rcmd->cmd);
+    *rcmd->efile = 0;
     break;
 
   case PIPE:
