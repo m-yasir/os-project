@@ -45,6 +45,7 @@ mpenter(void)
   seginit();
   lapicinit();
   mpmain();
+  
 }
 
 // Common CPU setup code.

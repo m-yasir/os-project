@@ -32,6 +32,6 @@ int main(int argc, char *argv[]) {
 
     close(fd1);
     close(fd0);
-  }
+
   exit();
 }
